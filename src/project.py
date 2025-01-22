@@ -4,6 +4,8 @@ import numpy as np
 import open3d as o3d
 import cv2
 
+from utils import get_extrinsic_matrix
+
 
 def project_mesh(mesh, camera_intrinsics, extrinsics):
     """Project 3D mesh vertices onto a 2D image plane."""
@@ -84,28 +86,29 @@ def render_mesh_image(mesh, camera, extrinsics, image_path, output_path, mask_pa
     return composite_image
 
 
-def project_points_to_image(mesh, hull, camera_id, cam_extrinsics, cam_intrinsics, object_name, points):
+def project_points_to_image(mesh, hull, camera_id, cam_extrinsics, cam_intrinsics, object_name, points, input_path, output_base_path):
     camera = cam_intrinsics[camera_id] if camera_id in cam_intrinsics else cam_intrinsics[list(cam_intrinsics.keys())[0]]
     qvec = cam_extrinsics[camera_id].qvec
     tvec = cam_extrinsics[camera_id].tvec
     extrinsics = get_extrinsic_matrix(qvec, tvec)
     name = cam_extrinsics[camera_id].name
-    image_path = f"data/{object_name}/images/{name}"  # Path to the image in images_8
+    # "/shared/home/nlr/dang/data/mipnerf/", "/shared/home/nlr/dang/output/mipnerf/"
+    image_path = f"{input_path}/{object_name}/images/{name}"  # Path to the image in images_8
     output_name = Path(image_path).stem
     mask_type = "hull"
-    output_dir = f"output/{object_name}/cluster/{mask_type}/mask"
+    output_dir = f"{output_base_path}/{object_name}/{mask_type}/mask"
     os.makedirs(output_dir, exist_ok=True)
-    output_path = f"output/{object_name}/cluster/{mask_type}/{output_name}.png"  # Output path for the rendered image
-    mask_path = f"output/{object_name}/cluster/{mask_type}/mask/{output_name}.png"  # Output path for the mask image
+    output_path = f"{output_base_path}/{object_name}/{mask_type}/{output_name}.png"  # Output path for the rendered image
+    mask_path = f"{output_base_path}/{object_name}/{mask_type}/mask/{output_name}.png"  # Output path for the mask image
 
 
     # Render the point cloud from the camera's viewpoint
     # render_convex_hull_image(hull, camera, extrinsics, image_path, output_path, mask_path)
     mask_type = "mesh"
-    output_dir = f"output/{object_name}/cluster/{mask_type}/mask"
+    output_dir = f"{output_base_path}/{object_name}/{mask_type}/mask"
     os.makedirs(output_dir, exist_ok=True)
-    output_path = f"output/{object_name}/cluster/{mask_type}/{output_name}.png"  # Output path for the rendered image
-    mask_path = f"output/{object_name}/cluster/{mask_type}/mask/{output_name}.png"  # Output path for the mask image
+    output_path = f"{output_base_path}/{object_name}/{mask_type}/{output_name}.png"  # Output path for the rendered image
+    mask_path = f"{output_base_path}/{object_name}/{mask_type}/mask/{output_name}.png"  # Output path for the mask image
     render_mesh_image(mesh, camera, extrinsics, image_path, output_path, mask_path)
     # mask_type = "points"
     # output_dir = f"output/{object_name}/cluster/{mask_type}/mask"
@@ -116,6 +119,7 @@ def project_points_to_image(mesh, hull, camera_id, cam_extrinsics, cam_intrinsic
 
 
 def poisson_surface_reconstruction(points, depth=9):
+    print("Running Poisson surface reconstruction...")
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(points)
     pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=1.0, max_nn=30))

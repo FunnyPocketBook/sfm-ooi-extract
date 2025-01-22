@@ -6,11 +6,13 @@ from scipy.signal import find_peaks
 
 
 def dbscan(points, eps=0.5, min_samples=200):
+    print(f"Running DBSCAN with epsilon {eps} and min_samples {min_samples}.")
     dbscan = DBSCAN(eps=eps, min_samples=min_samples)
     labels = dbscan.fit_predict(points)
     return labels
 
 def monte_carlo_kde(points, bandwidth: float, sample_size: int = 500, num_samples: int = 10):
+    print(f"Running Monte Carlo KDE with bandwidth {bandwidth}, sample size {sample_size}, and {num_samples} samples.")
     densities = []
     for _ in range(num_samples):
         sample_indices = np.random.choice(len(points), sample_size, replace=False)
@@ -28,6 +30,7 @@ def monte_carlo_kde(points, bandwidth: float, sample_size: int = 500, num_sample
 
 
 def get_peaks(density, min_peak_points, sigma, plot=False):
+    print(f"Finding peaks with minimum {min_peak_points} points.")
     density = np.sort(density)
     density = density[int(0.1 * len(density)):]
     density_values, bin_edges = np.histogram(density, bins=100) 
@@ -52,7 +55,7 @@ def get_peaks(density, min_peak_points, sigma, plot=False):
 
 
 def get_densest_cluster(points, min_peak_points, kde_samples=1000, sigma=2.5, colors=None, plot=False):
-    # density = monte_carlo_kde(points, bandwidth=1, sample_size=max(len(points) // 100, 3000))  
+    print(f"Calculating density for {len(points)} points...")
     density = monte_carlo_kde(points, bandwidth=1, sample_size=kde_samples)  
     peak_boundaries, bin_centers = get_peaks(density, min_peak_points, sigma=sigma, plot=True)
     first_peak_end_index = peak_boundaries[0][0]
@@ -63,6 +66,7 @@ def get_densest_cluster(points, min_peak_points, kde_samples=1000, sigma=2.5, co
     return points, density
 
 def remove_outliers(points, eps=None, min_samples=50):
+    print("Removing outliers...")
     if eps is None:
         density = monte_carlo_kde(points, bandwidth=1.0)
         mean_density = np.mean(density)

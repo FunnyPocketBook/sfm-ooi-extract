@@ -7,6 +7,7 @@ from colmap_loader import qvec2rotmat
 
 
 def read_ply(file_path):
+    print(f"Reading {file_path}")
     plydata = PlyData.read(file_path)
     x = plydata['vertex']['x']
     y = plydata['vertex']['y']
@@ -51,7 +52,12 @@ def get_extrinsic_matrix(qvec, tvec):
     return extrinsic_matrix
 
 
-def write_point_cloud(points, colors, normals, indices, path):
+def write_ply(original_points, points, colors, normals, out_path):
+    dtype = [('x', float), ('y', float), ('z', float)]
+    original_structured = np.array([tuple(p) for p in original_points], dtype=dtype)
+    outliers_structured = np.array([tuple(p) for p in points], dtype=dtype)
+
+    indices = np.nonzero(np.isin(original_structured, outliers_structured))[0]
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(points)
     if colors is not None:
@@ -61,4 +67,4 @@ def write_point_cloud(points, colors, normals, indices, path):
         end_normals = normals[indices]
         pcd.normals = o3d.utility.Vector3dVector(end_normals)
 
-    o3d.io.write_point_cloud(path, pcd)
+    o3d.io.write_point_cloud(out_path, pcd)

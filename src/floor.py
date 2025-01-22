@@ -134,6 +134,7 @@ def find_floor_plane_auto(points, min_floor_points=100,):
 
 def determine_model_orientation(points, plane_model):
     """Determine if the model is upside down relative to the floor plane."""
+    print("Determining model orientation...")
     a, b, c, d = plane_model
     normal_vector = np.array([a, b, c])
     
@@ -158,6 +159,7 @@ def determine_model_orientation(points, plane_model):
 
 def align_to_xy_plane(points, plane_model, orientation_info):
     """Align the point cloud so the floor is parallel to the XY plane and positioned at z=0."""
+    print("Aligning point cloud to XY plane...")
     # Extract plane parameters
     a, b, c, d = plane_model
     floor_normal = np.array([a, b, c])
@@ -215,6 +217,7 @@ def run_floor_separation(points, min_floor_points=500, distance_threshold=None):
     # 1. Find floor
     
     if distance_threshold is None:
+        print("Floor separation: Searching for optimal threshold...")
         floor_points, non_floor_points, plane_model = find_floor_plane_auto(
             points, 
             min_floor_points=min_floor_points,
@@ -223,6 +226,7 @@ def run_floor_separation(points, min_floor_points=500, distance_threshold=None):
     else:
         # floor_points, non_floor_points, plane_model = find_largest_surface_floor(points, distance_threshold=distance_threshold, 
         #                   min_floor_points=min_floor_points)
+        print(f"Floor separation: Using fixed threshold {distance_threshold:.4f}")
         floor_points, non_floor_points, plane_model = find_floor_plane(points, distance_threshold=distance_threshold, 
                           min_floor_points=min_floor_points)
     result['floor_points'] = floor_points
