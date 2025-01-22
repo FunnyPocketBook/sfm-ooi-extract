@@ -1,0 +1,82 @@
+from pathlib import Path
+import os
+
+from plyfile import PlyData
+
+import numpy as np
+
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
+
+from sklearn.cluster import DBSCAN
+from sklearn.neighbors import KernelDensity
+
+from scipy.ndimage import gaussian_filter1d
+from scipy.signal import find_peaks
+from scipy.spatial.transform import Rotation
+from scipy.spatial import ConvexHull
+
+import open3d as o3d
+
+import cv2
+
+from colmap_loader import read_extrinsics_binary, read_intrinsics_binary, qvec2rotmat
+
+
+
+def read_ply(file_path):
+    plydata = PlyData.read(file_path)
+    x = plydata['vertex']['x']
+    y = plydata['vertex']['y']
+    z = plydata['vertex']['z']
+    if 'red' in plydata['vertex']:
+        r = plydata['vertex']['red']
+        g = plydata['vertex']['green']
+        b = plydata['vertex']['blue']
+        colors = np.array([r, g, b]).T
+    else:
+        colors = None
+    if 'nx' in plydata['vertex']:
+        nx = plydata['vertex']['nx']
+        ny = plydata['vertex']['ny']
+        nz = plydata['vertex']['nz']
+        normals = np.array([nx, ny, nz]).T
+    else:
+        normals = None
+    points = np.array([x, y, z]).T
+    return points, colors, normals
+
+
+def get_extrinsic_matrix(qvec, tvec):
+    """
+    Create a 4x4 extrinsic matrix from quaternion and translation vector.
+    
+    Parameters:
+    - qvec: np.ndarray - Quaternion (w, x, y, z) representing rotation.
+    - tvec: np.ndarray - Translation vector (x, y, z).
+    
+    Returns:
+    - extrinsic_matrix: np.ndarray - 4x4 extrinsic matrix.
+    """
+    # Convert quaternion to rotation matrix
+    rotation_matrix = qvec2rotmat(qvec)
+    
+    # Create 4x4 extrinsic matrix
+    extrinsic_matrix = np.eye(4)
+    extrinsic_matrix[:3, :3] = rotation_matrix
+    extrinsic_matrix[:3, 3] = tvec
+    
+    return extrinsic_matrix
+
+
+def write_point_cloud(points, colors, normals, indices, path):
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(points)
+    if colors is not None:
+        end_colors = colors[indices]
+        pcd.colors = o3d.utility.Vector3dVector(end_colors / 255.0)
+    if normals is not None:
+        end_normals = normals[indices]
+        pcd.normals = o3d.utility.Vector3dVector(end_normals)
+
+    o3d.io.write_point_cloud(path, pcd)
