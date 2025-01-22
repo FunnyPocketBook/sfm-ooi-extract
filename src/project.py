@@ -1,23 +1,7 @@
 from pathlib import Path
 import os
-
-from plyfile import PlyData
-
 import numpy as np
-
-import plotly.graph_objs as go
-from plotly.subplots import make_subplots
-
-from sklearn.cluster import DBSCAN
-from sklearn.neighbors import KernelDensity
-
-from scipy.ndimage import gaussian_filter1d
-from scipy.signal import find_peaks
-from scipy.spatial.transform import Rotation
-from scipy.spatial import ConvexHull
-
 import open3d as o3d
-
 import cv2
 
 
