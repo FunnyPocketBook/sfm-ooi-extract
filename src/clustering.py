@@ -42,7 +42,7 @@ def get_peaks(density, min_peak_points, sigma, out_path):
 
     smoothed_density = gaussian_filter1d(density_values, sigma=sigma)
 
-    peaks, _ = find_peaks(smoothed_density, height=min_peak_points)  # Adjust height to filter out small peaks
+    peaks, _ = find_peaks(smoothed_density, height=min_peak_points, distance=10)  # Adjust height to filter out small peaks
 
     peak_boundaries = []
     for peak in peaks:
@@ -58,29 +58,34 @@ def get_peaks(density, min_peak_points, sigma, out_path):
 
     fig = go.Figure()
 
+    # Original density trace
     fig.add_trace(go.Scatter(
         x=bin_centers,
         y=density_values,
         mode='lines',
-        name="Original Density"
+        name="Original Density",
+        line=dict(color='#1f77b4')  # Consistent blue
     ))
 
+    # Smoothed density trace
     fig.add_trace(go.Scatter(
         x=bin_centers,
         y=smoothed_density,
         mode='lines',
-        line=dict(color='orange'),
+        line=dict(color='#ff7f0e'),  # Consistent orange
         name="Smoothed Density"
     ))
 
+    # Detected peaks
     fig.add_trace(go.Scatter(
         x=bin_centers[peaks],
         y=smoothed_density[peaks],
         mode='markers',
-        marker=dict(color='red', size=10, symbol='x'),
+        marker=dict(color='#d62728', size=10, symbol='x'),  # Consistent red
         name="Detected Peaks"
     ))
 
+    # Peak boundaries
     for idx, (start, end) in enumerate(peak_boundaries):
         fig.add_trace(go.Scatter(
             x=[bin_centers[start], bin_centers[start]],
@@ -91,18 +96,35 @@ def get_peaks(density, min_peak_points, sigma, out_path):
             name="Peak Separation" if idx == 0 else None
         ))
 
+    # Layout for consistent style
     fig.update_layout(
         title="Density Histogram with Peak Detection",
         xaxis_title="Density",
         yaxis_title="Number of Points",
+        plot_bgcolor='rgba(240, 240, 240, 1)',  # Light gray background
+        paper_bgcolor='rgba(240, 240, 240, 1)',  # Match plot background
         legend=dict(
             x=1.0,
             y=1.0,
             xanchor='right',
             yanchor='top',
-            bgcolor='rgba(255, 255, 255, 0.5)',
-            bordercolor='Black',
+            bgcolor='rgba(255, 255, 255, 0.5)',  # Semi-transparent legend
+            bordercolor='black',
             borderwidth=1
+        ),
+        xaxis=dict(
+            showgrid=True,
+            gridcolor='lightgray',
+            gridwidth=0.5
+        ),
+        yaxis=dict(
+            showgrid=True,
+            gridcolor='lightgray',
+            gridwidth=0.5
+        ),
+        font=dict(
+            family="Arial, sans-serif",
+            size=12,
         )
     )
 
@@ -114,7 +136,7 @@ def get_densest_cluster(points, out_path, min_peak_points, kde_samples=1000, sig
     print(f"Calculating density for {len(points)} points...")
     density = monte_carlo_kde(points, bandwidth=1, sample_size=kde_samples)  
     peak_boundaries, bin_centers = get_peaks(density, min_peak_points, sigma, out_path)
-    first_peak_end_index = peak_boundaries[0][0]
+    first_peak_end_index = peak_boundaries[1][1]
     first_peak_end = bin_centers[first_peak_end_index]
     print(f"First peak ends at density {first_peak_end}")
     points = points[density > first_peak_end]

@@ -35,8 +35,8 @@ def find_floor_plane(points, distance_threshold=0.02, min_floor_points=100):
     return floor_points, non_floor_points, plane_model
 
 def find_optimal_threshold_floor(points, 
-                           initial_threshold=0.01, 
-                           max_threshold=0.2, 
+                           initial_threshold=0.005, 
+                           max_threshold=0.1, 
                            iterations=50):
     """
     Automatically find optimal distance threshold for floor detection without predefined floor ratio bounds.
@@ -125,74 +125,96 @@ def find_floor_plane_auto(points, out_path, min_floor_points=100):
     Enhanced floor detection with automatic threshold selection.
     """
     optimal_threshold, floor_ratio, stats = find_optimal_threshold_floor(points)
+    
+    # Create the figure
     fig = go.Figure()
+
+    # Plot threshold values
     fig.add_trace(go.Scatter(
-            x=stats['iterations'],
-            y=stats['thresholds'],
-            name='Threshold',
-            mode='lines+markers',
-            line=dict(color='red'),
-        ))
-        
+        x=stats['thresholds'],
+        y=stats['thresholds'],  # Assuming `stats['thresholds']` maps to x-axis
+        name='Threshold',
+        mode='lines+markers',
+        line=dict(color='#1f77b4'),  # Blue
+    ))
+
     # Plot floor ratio evolution
     fig.add_trace(go.Scatter(
-        x=stats['iterations'],
+        x=stats['thresholds'],
         y=stats['floor_ratios'],
         name='Floor Ratio',
         mode='lines+markers',
-        line=dict(color='cyan'),
+        line=dict(color='#ff7f0e'),  # Orange
         yaxis='y2'
     ))
 
+    # Smoothed floor ratio
     smoothed_floor_ratio = gaussian_filter1d(stats['floor_ratios'], sigma=3)
     fig.add_trace(go.Scatter(
-        x=stats['iterations'],
+        x=stats['thresholds'],
         y=smoothed_floor_ratio,
         name='Smoothed Floor Ratio',
         mode='lines',
-        line=dict(color='blue'),
+        line=dict(color='#2ca02c'),  # Green
         yaxis='y2'
     ))
 
-
-    # plot 2nd derivative of floor ratio
+    # Plot second derivative of floor ratio
+    second_derivative = np.gradient(np.gradient(smoothed_floor_ratio))
     fig.add_trace(go.Scatter(
-        x=stats['iterations'],
-        y=np.gradient(np.gradient(smoothed_floor_ratio)),
+        x=stats['thresholds'],
+        y=second_derivative,
         name='2nd Derivative of Floor Ratio',
         mode='lines+markers',
-        line=dict(color='blue'),
+        line=dict(color='#d62728'),  # Red
     ))
-    
-    # Plot floor ratio evolution
+
+    # Plot improvements
     fig.add_trace(go.Scatter(
-        x=stats['iterations'],
+        x=stats['thresholds'],
         y=stats['improvements'],
         name='Improvements',
         mode='lines+markers',
-        line=dict(color='blue'),
+        line=dict(color='#9467bd'),  # Purple
         yaxis='y2'
     ))
-    
+
+    # Update layout
     fig.update_layout(
         title='Threshold Search Evolution',
-        xaxis_title='Iteration',
-        yaxis_title='Threshold',
+        xaxis_title='Threshold',
+        yaxis=dict(
+            title='Threshold',
+            showgrid=True,  # Ensure gridlines are visible
+            gridcolor='lightgray',  # Gridline color
+            gridwidth=0.5,  # Gridline width
+        ),
         yaxis2=dict(
             title='Floor Ratio',
             overlaying='y',
-            side='right'
+            side='right',
+            showgrid=False,  # Ensure no conflicting grids
+        ),
+        template=None,  # Retain your background settings
+        plot_bgcolor='rgba(240, 240, 240, 1)',  # Your desired background color
+        paper_bgcolor='rgba(240, 240, 240, 1)',  # Match the plot background
+        xaxis=dict(
+            showgrid=True,  # Align the grid with the Y-axis
+            gridcolor='lightgray',
+            gridwidth=0.5,
         )
     )
+
+    # Save plot as an HTML file
     fig.write_html(f"{out_path}/plots/threshold_search_evolution.html")
-        
+
     print(f"Found optimal threshold: {optimal_threshold:.4f}")
     print(f"Floor ratio: {floor_ratio:.2%}")
     print(f"Median point distance: {stats['median_point_distance']:.4f}")
-    
-    return find_floor_plane(points, distance_threshold=optimal_threshold, 
-                          min_floor_points=min_floor_points)
 
+    # Call the main function with the optimal threshold
+    return find_floor_plane(points, distance_threshold=optimal_threshold, 
+                            min_floor_points=min_floor_points)
 
 def determine_model_orientation(points, plane_model):
     """Determine if the model is upside down relative to the floor plane."""

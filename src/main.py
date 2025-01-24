@@ -81,8 +81,8 @@ def process_object(object_name, input_path, output_path, kde_samples=1000, min_p
 
 now = datetime.now()
 now_string = now.strftime("%Y-%m-%d_%H-%M-%S")
-process_object("stump", "S:/git/sfm-ooi-extract/data", "S:/git/sfm-ooi-extract/output", double_dbscan=False, project=True, point_cloud_metrics=False, separate_floor=True, min_peak_points=200)
-# process_object("kitchen", "S:/git/sfm-ooi-extract/data", "S:/git/sfm-ooi-extract/output", project=True)
+# process_object("stump", "S:/git/sfm-ooi-extract/data", "S:/git/sfm-ooi-extract/output", double_dbscan=False, project=True, point_cloud_metrics=False, separate_floor=True, min_peak_points=200)
+process_object("kitchen", "S:/git/sfm-ooi-extract/data", "S:/git/sfm-ooi-extract/output", project=False)
 # process_object("bonsai", "S:/git/sfm-ooi-extract/data", "S:/git/sfm-ooi-extract/output", project=True)
 # process_object("bicycle", "S:/git/sfm-ooi-extract/data", "S:/git/sfm-ooi-extract/output", double_dbscan=False, project=True, floor_distance_threshold=0.1, poisson_depth=10)
 # process_object("garden", "S:/git/sfm-ooi-extract/data", "S:/git/sfm-ooi-extract/output", double_dbscan=False, project=True)

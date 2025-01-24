@@ -73,6 +73,6 @@ def write_ply(original_points, points, colors, normals, out_path):
     if normals is not None:
         end_normals = normals[indices]
         pcd.normals = o3d.utility.Vector3dVector(end_normals)
-    flip_ply_on_z_axis(pcd, out_path)
     o3d.io.write_point_cloud(out_path, pcd)
+    flip_ply_on_z_axis(pcd, out_path)
     return pcd
