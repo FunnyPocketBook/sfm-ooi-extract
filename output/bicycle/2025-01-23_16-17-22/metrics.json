@@ -1,0 +1,50 @@
+{
+    "bicycle_dense.ply": {
+        "MSE": 0.0,
+        "RMSE": 0.0,
+        "MAE": 0.0,
+        "Chamfer Distance": 0.4287693203432273,
+        "Hausdorff Distance": 2.2985977568070415,
+        "Bounding Box Diagonal": 3.8078062307677456,
+        "Hausdorff / BB Ratio": 0.6036540773093878,
+        "SNR": Infinity,
+        "Exact Matches": 6334,
+        "Missing Points": 0,
+        "Extra Points": 10542,
+        "Completeness/Recall": 1.0,
+        "Accuracy/Precision": 0.37532590661294146,
+        "F1 Score": 0.5457992244722102
+    },
+    "bicycle_final.ply": {
+        "MSE": 1.3967414003929626e-05,
+        "RMSE": 0.00373730036308692,
+        "MAE": 0.0002661263133632115,
+        "Chamfer Distance": 0.0037993774225227846,
+        "Hausdorff Distance": 0.5351362231290404,
+        "Bounding Box Diagonal": 3.8078062307677456,
+        "Hausdorff / BB Ratio": 0.14053662153421712,
+        "SNR": 50.246322903713676,
+        "Exact Matches": 6292,
+        "Missing Points": 42,
+        "Extra Points": 525,
+        "Completeness/Recall": 0.9933691190401011,
+        "Accuracy/Precision": 0.92298665101951,
+        "F1 Score": 0.9568854079537679
+    },
+    "bicycle_floorseg.ply": {
+        "MSE": 1.3967414003929626e-05,
+        "RMSE": 0.00373730036308692,
+        "MAE": 0.0002661263133632115,
+        "Chamfer Distance": 0.08783413982403734,
+        "Hausdorff Distance": 2.295674093322511,
+        "Bounding Box Diagonal": 3.8078062307677456,
+        "Hausdorff / BB Ratio": 0.6028862694674586,
+        "SNR": 50.246322903713676,
+        "Exact Matches": 6292,
+        "Missing Points": 42,
+        "Extra Points": 692,
+        "Completeness/Recall": 0.9933691190401011,
+        "Accuracy/Precision": 0.9009163802978236,
+        "F1 Score": 0.9448866196125544
+    }
+}

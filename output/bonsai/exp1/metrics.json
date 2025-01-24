@@ -1,0 +1,50 @@
+{
+    "bonsai_dense.ply": {
+        "MSE": 0.0,
+        "RMSE": 0.0,
+        "MAE": 0.0,
+        "Chamfer Distance": 0.2260796750523533,
+        "Hausdorff Distance": 1.9056247417840848,
+        "Bounding Box Diagonal": 2.9727479402394965,
+        "Hausdorff / BB Ratio": 0.6410313891700351,
+        "SNR": Infinity,
+        "Exact Matches": 25220,
+        "Missing Points": 0,
+        "Extra Points": 101654,
+        "Completeness/Recall": 1.0,
+        "Accuracy/Precision": 0.19877989186121664,
+        "F1 Score": 0.33163701395189815
+    },
+    "bonsai_final.ply": {
+        "MSE": 6.568392389617137e-05,
+        "RMSE": 0.008104561918831354,
+        "MAE": 0.0009848932203083533,
+        "Chamfer Distance": 0.0003134609541940958,
+        "Hausdorff Distance": 0.6358979444844945,
+        "Bounding Box Diagonal": 2.9727479402394965,
+        "Hausdorff / BB Ratio": 0.21390913635054576,
+        "SNR": 47.32783792501455,
+        "Exact Matches": 24710,
+        "Missing Points": 510,
+        "Extra Points": 181,
+        "Completeness/Recall": 0.9797779540047581,
+        "Accuracy/Precision": 0.9927282953678036,
+        "F1 Score": 0.9862106124403822
+    },
+    "bonsai_floorseg.ply": {
+        "MSE": 6.568392389617137e-05,
+        "RMSE": 0.008104561918831354,
+        "MAE": 0.0009848932203083533,
+        "Chamfer Distance": 0.0012725591699570486,
+        "Hausdorff Distance": 1.3514960780083451,
+        "Bounding Box Diagonal": 2.9727479402394965,
+        "Hausdorff / BB Ratio": 0.45462854745076814,
+        "SNR": 47.32783792501455,
+        "Exact Matches": 24710,
+        "Missing Points": 510,
+        "Extra Points": 216,
+        "Completeness/Recall": 0.9797779540047581,
+        "Accuracy/Precision": 0.9913343496750381,
+        "F1 Score": 0.9855222749571252
+    }
+}

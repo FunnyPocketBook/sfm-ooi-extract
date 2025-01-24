@@ -1,4 +1,4 @@
 .venv
 images*
-output
+*.png
 __pycache__

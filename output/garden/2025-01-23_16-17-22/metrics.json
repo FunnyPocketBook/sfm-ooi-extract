@@ -1,0 +1,50 @@
+{
+    "garden_dense.ply": {
+        "MSE": 0.0,
+        "RMSE": 0.0,
+        "MAE": 0.0,
+        "Chamfer Distance": 2.467986488194387,
+        "Hausdorff Distance": 4.239815775141474,
+        "Bounding Box Diagonal": 4.9021048569431915,
+        "Hausdorff / BB Ratio": 0.864896998099975,
+        "SNR": Infinity,
+        "Exact Matches": 14055,
+        "Missing Points": 0,
+        "Extra Points": 50748,
+        "Completeness/Recall": 1.0,
+        "Accuracy/Precision": 0.21688810703208186,
+        "F1 Score": 0.3564635167009054
+    },
+    "garden_final.ply": {
+        "MSE": 4.769697951221672,
+        "RMSE": 2.1839638163718904,
+        "MAE": 2.131640550116791,
+        "Chamfer Distance": 12.074837536642335,
+        "Hausdorff Distance": 4.239815775141474,
+        "Bounding Box Diagonal": 4.9021048569431915,
+        "Hausdorff / BB Ratio": 0.864896998099975,
+        "SNR": 0.31564416479912205,
+        "Exact Matches": 0,
+        "Missing Points": 14055,
+        "Extra Points": 15161,
+        "Completeness/Recall": 0.0,
+        "Accuracy/Precision": 0.0,
+        "F1 Score": 0.0
+    },
+    "garden_floorseg.ply": {
+        "MSE": 0.0002481311022463674,
+        "RMSE": 0.015752177698539573,
+        "MAE": 0.0036230944778948204,
+        "Chamfer Distance": 3.8980765373709203,
+        "Hausdorff Distance": 4.239815775141474,
+        "Bounding Box Diagonal": 4.9021048569431915,
+        "Hausdorff / BB Ratio": 0.864896998099975,
+        "SNR": 43.153740892261744,
+        "Exact Matches": 13186,
+        "Missing Points": 869,
+        "Extra Points": 16501,
+        "Completeness/Recall": 0.9381714692280327,
+        "Accuracy/Precision": 0.4441674807154647,
+        "F1 Score": 0.6028988157834575
+    }
+}
