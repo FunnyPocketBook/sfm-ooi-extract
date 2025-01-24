@@ -129,15 +129,6 @@ def find_floor_plane_auto(points, out_path, min_floor_points=100):
     # Create the figure
     fig = go.Figure()
 
-    # Plot threshold values
-    fig.add_trace(go.Scatter(
-        x=stats['thresholds'],
-        y=stats['thresholds'],  # Assuming `stats['thresholds']` maps to x-axis
-        name='Threshold',
-        mode='lines+markers',
-        line=dict(color='#1f77b4'),  # Blue
-    ))
-
     # Plot floor ratio evolution
     fig.add_trace(go.Scatter(
         x=stats['thresholds'],
@@ -145,7 +136,6 @@ def find_floor_plane_auto(points, out_path, min_floor_points=100):
         name='Floor Ratio',
         mode='lines+markers',
         line=dict(color='#ff7f0e'),  # Orange
-        yaxis='y2'
     ))
 
     # Smoothed floor ratio
@@ -156,7 +146,6 @@ def find_floor_plane_auto(points, out_path, min_floor_points=100):
         name='Smoothed Floor Ratio',
         mode='lines',
         line=dict(color='#2ca02c'),  # Green
-        yaxis='y2'
     ))
 
     # Plot second derivative of floor ratio
@@ -166,16 +155,7 @@ def find_floor_plane_auto(points, out_path, min_floor_points=100):
         y=second_derivative,
         name='2nd Derivative of Floor Ratio',
         mode='lines+markers',
-        line=dict(color='#d62728'),  # Red
-    ))
-
-    # Plot improvements
-    fig.add_trace(go.Scatter(
-        x=stats['thresholds'],
-        y=stats['improvements'],
-        name='Improvements',
-        mode='lines+markers',
-        line=dict(color='#9467bd'),  # Purple
+        line=dict(color='#d62728', dash='dash'),  # Red
         yaxis='y2'
     ))
 
@@ -184,16 +164,16 @@ def find_floor_plane_auto(points, out_path, min_floor_points=100):
         title='Threshold Search Evolution',
         xaxis_title='Threshold',
         yaxis=dict(
-            title='Threshold',
+            title='Floor Ratio',
             showgrid=True,  # Ensure gridlines are visible
             gridcolor='lightgray',  # Gridline color
             gridwidth=0.5,  # Gridline width
         ),
         yaxis2=dict(
-            title='Floor Ratio',
+            title='2nd Derivative',
             overlaying='y',
             side='right',
-            showgrid=False,  # Ensure no conflicting grids
+            showgrid=False,  # No gridlines
         ),
         template=None,  # Retain your background settings
         plot_bgcolor='rgba(240, 240, 240, 1)',  # Your desired background color

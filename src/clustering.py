@@ -104,13 +104,13 @@ def get_peaks(density, min_peak_points, sigma, out_path):
         plot_bgcolor='rgba(240, 240, 240, 1)',  # Light gray background
         paper_bgcolor='rgba(240, 240, 240, 1)',  # Match plot background
         legend=dict(
-            x=1.0,
-            y=1.0,
-            xanchor='right',
-            yanchor='top',
-            bgcolor='rgba(255, 255, 255, 0.5)',  # Semi-transparent legend
-            bordercolor='black',
-            borderwidth=1
+            x=1.02,  # Slightly outside the graph on the right
+            y=1.0,  # Aligns with the top of the graph
+            xanchor='left',  # Anchors the legend's left side at x=1.02
+            yanchor='top',  # Anchors the legend's top side at y=1.0
+            bgcolor='rgba(255, 255, 255, 0.5)',  # Semi-transparent legend background
+            bordercolor='black',  # Border color
+            borderwidth=1  # Border width
         ),
         xaxis=dict(
             showgrid=True,
