@@ -1,0 +1,33 @@
+Average metrics for dense.ply:
+  Chamfer Distance: 0.48627
+  Hausdorff Distance: 1.97250
+  HD/BB: 0.55100
+  Exact Matches: 20809.75000
+  Missing Points: 2.00000
+  Extra Points: 61877.00000
+  Completeness/Recall: 0.99975
+  Accuracy/Precision: 0.28075
+  F1 Score: 0.43475
+
+Average metrics for final.ply:
+  Chamfer Distance: 0.00109
+  Hausdorff Distance: 0.56400
+  HD/BB: 0.16050
+  Exact Matches: 19894.00000
+  Missing Points: 917.75000
+  Extra Points: 427.25000
+  Completeness/Recall: 0.96200
+  Accuracy/Precision: 0.97250
+  F1 Score: 0.96675
+
+Average metrics for floorseg.ply:
+  Chamfer Distance: 0.16730
+  Hausdorff Distance: 1.82775
+  HD/BB: 0.50200
+  Exact Matches: 19895.00000
+  Missing Points: 916.75000
+  Extra Points: 1296.25000
+  Completeness/Recall: 0.96200
+  Accuracy/Precision: 0.92100
+  F1 Score: 0.94000
+

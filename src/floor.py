@@ -2,6 +2,8 @@ import numpy as np
 from scipy.ndimage import gaussian_filter1d
 from scipy.spatial.transform import Rotation
 import open3d as o3d
+import concurrent
+import plotly.graph_objs as go
 
 def find_floor_plane(points, distance_threshold=0.02, min_floor_points=100):
     """Find the floor plane in a point cloud."""
@@ -118,11 +120,71 @@ def find_optimal_threshold_floor(points,
     return best_threshold, best_ratio, stats
 
 
-def find_floor_plane_auto(points, min_floor_points=100,):
+def find_floor_plane_auto(points, out_path, min_floor_points=100):
     """
     Enhanced floor detection with automatic threshold selection.
     """
     optimal_threshold, floor_ratio, stats = find_optimal_threshold_floor(points)
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+            x=stats['iterations'],
+            y=stats['thresholds'],
+            name='Threshold',
+            mode='lines+markers',
+            line=dict(color='red'),
+        ))
+        
+    # Plot floor ratio evolution
+    fig.add_trace(go.Scatter(
+        x=stats['iterations'],
+        y=stats['floor_ratios'],
+        name='Floor Ratio',
+        mode='lines+markers',
+        line=dict(color='cyan'),
+        yaxis='y2'
+    ))
+
+    smoothed_floor_ratio = gaussian_filter1d(stats['floor_ratios'], sigma=3)
+    fig.add_trace(go.Scatter(
+        x=stats['iterations'],
+        y=smoothed_floor_ratio,
+        name='Smoothed Floor Ratio',
+        mode='lines',
+        line=dict(color='blue'),
+        yaxis='y2'
+    ))
+
+
+    # plot 2nd derivative of floor ratio
+    fig.add_trace(go.Scatter(
+        x=stats['iterations'],
+        y=np.gradient(np.gradient(smoothed_floor_ratio)),
+        name='2nd Derivative of Floor Ratio',
+        mode='lines+markers',
+        line=dict(color='blue'),
+    ))
+    
+    # Plot floor ratio evolution
+    fig.add_trace(go.Scatter(
+        x=stats['iterations'],
+        y=stats['improvements'],
+        name='Improvements',
+        mode='lines+markers',
+        line=dict(color='blue'),
+        yaxis='y2'
+    ))
+    
+    fig.update_layout(
+        title='Threshold Search Evolution',
+        xaxis_title='Iteration',
+        yaxis_title='Threshold',
+        yaxis2=dict(
+            title='Floor Ratio',
+            overlaying='y',
+            side='right'
+        )
+    )
+    fig.write_html(f"{out_path}/plots/threshold_search_evolution.html")
         
     print(f"Found optimal threshold: {optimal_threshold:.4f}")
     print(f"Floor ratio: {floor_ratio:.2%}")
@@ -211,7 +273,7 @@ def align_to_xy_plane(points, plane_model, orientation_info):
     return aligned_points, rotation_matrix, translation
 
 
-def run_floor_separation(points, min_floor_points=500, distance_threshold=None):
+def run_floor_separation(points, out_path, min_floor_points=500, distance_threshold=None):
     """Complete pipeline to process the point cloud."""
     result = {}
     # 1. Find floor
@@ -220,8 +282,8 @@ def run_floor_separation(points, min_floor_points=500, distance_threshold=None):
         print("Floor separation: Searching for optimal threshold...")
         floor_points, non_floor_points, plane_model = find_floor_plane_auto(
             points, 
-            min_floor_points=min_floor_points,
-            visualize_threshold_search=True
+            out_path,
+            min_floor_points=min_floor_points
         )
     else:
         # floor_points, non_floor_points, plane_model = find_largest_surface_floor(points, distance_threshold=distance_threshold, 

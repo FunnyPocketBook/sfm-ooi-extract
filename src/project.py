@@ -3,6 +3,8 @@ import os
 import numpy as np
 import open3d as o3d
 import cv2
+import time
+import multiprocessing
 
 from utils import get_extrinsic_matrix
 
@@ -95,31 +97,19 @@ def project_points_to_image(mesh, hull, camera_id, cam_extrinsics, cam_intrinsic
     # "/shared/home/nlr/dang/data/mipnerf/", "/shared/home/nlr/dang/output/mipnerf/"
     image_path = f"{input_path}/{object_name}/images/{name}"  # Path to the image in images_8
     output_name = Path(image_path).stem
-    mask_type = "hull"
-    output_dir = f"{output_base_path}/{object_name}/{mask_type}/mask"
-    os.makedirs(output_dir, exist_ok=True)
-    output_path = f"{output_base_path}/{object_name}/{mask_type}/{output_name}.png"  # Output path for the rendered image
-    mask_path = f"{output_base_path}/{object_name}/{mask_type}/mask/{output_name}.png"  # Output path for the mask image
 
-
-    # Render the point cloud from the camera's viewpoint
-    # render_convex_hull_image(hull, camera, extrinsics, image_path, output_path, mask_path)
     mask_type = "mesh"
-    output_dir = f"{output_base_path}/{object_name}/{mask_type}/mask"
+    output_dir = f"{output_base_path}/{mask_type}/mask"
     os.makedirs(output_dir, exist_ok=True)
-    output_path = f"{output_base_path}/{object_name}/{mask_type}/{output_name}.png"  # Output path for the rendered image
-    mask_path = f"{output_base_path}/{object_name}/{mask_type}/mask/{output_name}.png"  # Output path for the mask image
+    output_path = f"{output_base_path}/{mask_type}/{output_name}.png"
+    mask_path = f"{output_base_path}/{mask_type}/mask/{output_name}.png"
     render_mesh_image(mesh, camera, extrinsics, image_path, output_path, mask_path)
-    # mask_type = "points"
-    # output_dir = f"output/{object_name}/cluster/{mask_type}/mask"
-    # os.makedirs(output_dir, exist_ok=True)
-    # output_path = f"output/{object_name}/cluster/{mask_type}/{output_name}.png"  # Output path for the rendered image
-    # mask_path = f"output/{object_name}/cluster/{mask_type}/mask/{output_name}.png"  # Output path for the mask image
-    # render_composite_image(points, camera, extrinsics, image_path, output_path, mask_path)
 
 
-def poisson_surface_reconstruction(points, depth=9):
+def poisson_surface_reconstruction(points, depth=None):
     print("Running Poisson surface reconstruction...")
+    if depth is None:
+        return optimize_poisson_depth(points)
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(points)
     pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=1.0, max_nn=30))
@@ -130,3 +120,42 @@ def poisson_surface_reconstruction(points, depth=9):
     mesh.remove_vertices_by_mask(vertices_to_remove)
     
     return mesh
+
+
+def optimize_poisson_depth(
+    points, 
+    depth_range=(5, 12), 
+    metric='surface_area'
+):
+    depths = list(range(depth_range[0], depth_range[1] + 1))
+    start_time = time.perf_counter()
+    results = []
+    for depth in depths:
+        try:
+            pcd = o3d.geometry.PointCloud()
+            pcd.points = o3d.utility.Vector3dVector(points)
+            pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=1.0, max_nn=30))
+            pcd.orient_normals_consistent_tangent_plane(k=30)
+            
+            mesh, densities = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(pcd, depth=depth)
+            
+            vertices_to_remove = densities < np.quantile(densities, 0.05)
+            mesh.remove_vertices_by_mask(vertices_to_remove)
+            
+            results.append({
+                'depth': depth,
+                'surface_area': mesh.get_surface_area(),
+                'num_triangles': len(mesh.triangles),
+                'num_vertices': len(mesh.vertices),
+                'mesh': mesh	
+            })
+        except Exception as e:
+            print(f"Error at depth {depth}: {e}")
+    
+    if metric == 'surface_area':
+        best_result = max(results, key=lambda x: x['surface_area'])
+    else:
+        best_result = results[len(results) // 2]
+    
+    print(f"Poisson surface reconstruction took {time.perf_counter() - start_time:.2f} seconds. Best depth: {best_result['depth']}")
+    return best_result['mesh']

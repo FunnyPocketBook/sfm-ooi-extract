@@ -1,0 +1,6 @@
+Average Metrics:
+IoU: 0.6932
+Dice Coefficient: 0.8175
+Precision: 0.7205
+Recall: 0.9484
+F1 Score: 0.8175

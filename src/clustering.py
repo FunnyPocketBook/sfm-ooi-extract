@@ -3,6 +3,10 @@ from sklearn.cluster import DBSCAN
 from sklearn.neighbors import KernelDensity
 from scipy.ndimage import gaussian_filter1d
 from scipy.signal import find_peaks
+from joblib import Parallel, delayed
+import time
+import plotly.graph_objs as go
+
 
 
 def dbscan(points, eps=0.5, min_samples=200):
@@ -13,8 +17,8 @@ def dbscan(points, eps=0.5, min_samples=200):
 
 def monte_carlo_kde(points, bandwidth: float, sample_size: int = 500, num_samples: int = 10):
     print(f"Running Monte Carlo KDE with bandwidth {bandwidth}, sample size {sample_size}, and {num_samples} samples.")
-    densities = []
-    for _ in range(num_samples):
+    start_time = time.perf_counter()
+    def process_sample():
         sample_indices = np.random.choice(len(points), sample_size, replace=False)
         sample_points = points[sample_indices]
 
@@ -22,17 +26,17 @@ def monte_carlo_kde(points, bandwidth: float, sample_size: int = 500, num_sample
         kde.fit(sample_points)
         
         log_density = kde.score_samples(points)
-        densities.append(np.exp(log_density))
+        return np.exp(log_density)
 
-    # Aggregate results (e.g., average density estimates)
-    density = np.mean(densities, axis=0)
-    return density
+    densities = Parallel(n_jobs=-1)(delayed(process_sample)() for _ in range(num_samples))
+    print(f"Monte Carlo KDE took {time.perf_counter() - start_time:.2f} seconds.")
+    return np.mean(densities, axis=0)
 
 
-def get_peaks(density, min_peak_points, sigma, plot=False):
+def get_peaks(density, min_peak_points, sigma, out_path):
     print(f"Finding peaks with minimum {min_peak_points} points.")
     density = np.sort(density)
-    density = density[int(0.1 * len(density)):]
+    density = density[int(0.3 * len(density)):]
     density_values, bin_edges = np.histogram(density, bins=100) 
     bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
 
@@ -51,14 +55,66 @@ def get_peaks(density, min_peak_points, sigma, plot=False):
             end += 1
 
         peak_boundaries.append((start, end))
+
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter(
+        x=bin_centers,
+        y=density_values,
+        mode='lines',
+        name="Original Density"
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=bin_centers,
+        y=smoothed_density,
+        mode='lines',
+        line=dict(color='orange'),
+        name="Smoothed Density"
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=bin_centers[peaks],
+        y=smoothed_density[peaks],
+        mode='markers',
+        marker=dict(color='red', size=10, symbol='x'),
+        name="Detected Peaks"
+    ))
+
+    for idx, (start, end) in enumerate(peak_boundaries):
+        fig.add_trace(go.Scatter(
+            x=[bin_centers[start], bin_centers[start]],
+            y=[0, max(density_values)],
+            mode='lines',
+            line=dict(color='green', dash='dash'),
+            showlegend=idx == 0,
+            name="Peak Separation" if idx == 0 else None
+        ))
+
+    fig.update_layout(
+        title="Density Histogram with Peak Detection",
+        xaxis_title="Density",
+        yaxis_title="Number of Points",
+        legend=dict(
+            x=1.0,
+            y=1.0,
+            xanchor='right',
+            yanchor='top',
+            bgcolor='rgba(255, 255, 255, 0.5)',
+            bordercolor='Black',
+            borderwidth=1
+        )
+    )
+
+    fig.write_html(f"{out_path}/plots/density.html")
     return peak_boundaries, bin_centers
 
 
-def get_densest_cluster(points, min_peak_points, kde_samples=1000, sigma=2.5, colors=None, plot=False):
+def get_densest_cluster(points, out_path, min_peak_points, kde_samples=1000, sigma=3):
     print(f"Calculating density for {len(points)} points...")
     density = monte_carlo_kde(points, bandwidth=1, sample_size=kde_samples)  
-    peak_boundaries, bin_centers = get_peaks(density, min_peak_points, sigma=sigma, plot=True)
-    first_peak_end_index = peak_boundaries[0][0]
+    peak_boundaries, bin_centers = get_peaks(density, min_peak_points, sigma, out_path)
+    first_peak_end_index = peak_boundaries[1][1]
     first_peak_end = bin_centers[first_peak_end_index]
     print(f"First peak ends at density {first_peak_end}")
     points = points[density > first_peak_end]
