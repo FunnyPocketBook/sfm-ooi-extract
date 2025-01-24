@@ -51,6 +51,13 @@ def get_extrinsic_matrix(qvec, tvec):
     
     return extrinsic_matrix
 
+def flip_ply_on_z_axis(point_cloud, output_file):
+    points = np.asarray(point_cloud.points)
+    points[:, 1] = -points[:, 1]
+    point_cloud.points = o3d.utility.Vector3dVector(points)
+    output_file = output_file.replace(".ply", "_flipped.ply")
+    o3d.io.write_point_cloud(output_file, point_cloud)
+
 
 def write_ply(original_points, points, colors, normals, out_path):
     dtype = [('x', float), ('y', float), ('z', float)]
@@ -66,5 +73,6 @@ def write_ply(original_points, points, colors, normals, out_path):
     if normals is not None:
         end_normals = normals[indices]
         pcd.normals = o3d.utility.Vector3dVector(end_normals)
-
+    flip_ply_on_z_axis(pcd, out_path)
     o3d.io.write_point_cloud(out_path, pcd)
+    return pcd

@@ -28,7 +28,7 @@ def setup_signal_handler():
 
 setup_signal_handler()
 
-def process_object(object_name, input_path, output_path, kde_samples=1000, min_peak_points=300, double_dbscan=True, project=False, outlier_removal_eps=0.4, separate_floor=True, floor_distance_threshold=None, poisson_depth=9):
+def process_object(object_name, input_path, output_path, kde_samples=1000, min_peak_points=300, double_dbscan=True, project=False, outlier_removal_eps=0.4, separate_floor=True, floor_distance_threshold=None, poisson_depth=9, point_cloud_metrics=True):
     print("start")
     output_path = f"{output_path}/{object_name}/{now_string}"
     if not os.path.exists(output_path):
@@ -60,8 +60,8 @@ def process_object(object_name, input_path, output_path, kde_samples=1000, min_p
     points_path = f"{output_path}/{object_name}_final.ply"
     
     write_ply(points_original, outliers_removed, colors, normals, points_path)
-
-    ply_metrics(f"{input_path}/{object_name}/points3D_gt.ply", output_path, object_name, f"{output_path}/metrics.json")
+    if point_cloud_metrics:
+        ply_metrics(f"{input_path}/{object_name}/points3D_gt.ply", output_path, object_name, f"{output_path}/metrics.json")
 
     mesh = poisson_surface_reconstruction(outliers_removed, depth=poisson_depth)
     open3d.io.write_triangle_mesh(f"{output_path}/{object_name}_mesh.ply", mesh)
@@ -81,7 +81,8 @@ def process_object(object_name, input_path, output_path, kde_samples=1000, min_p
 
 now = datetime.now()
 now_string = now.strftime("%Y-%m-%d_%H-%M-%S")
+process_object("stump", "S:/git/sfm-ooi-extract/data", "S:/git/sfm-ooi-extract/output", double_dbscan=False, project=True, point_cloud_metrics=False, separate_floor=True, min_peak_points=200)
 # process_object("kitchen", "S:/git/sfm-ooi-extract/data", "S:/git/sfm-ooi-extract/output", project=True)
 # process_object("bonsai", "S:/git/sfm-ooi-extract/data", "S:/git/sfm-ooi-extract/output", project=True)
-process_object("bicycle", "S:/git/sfm-ooi-extract/data", "S:/git/sfm-ooi-extract/output", double_dbscan=False, project=True, floor_distance_threshold=0.1, poisson_depth=10)
+# process_object("bicycle", "S:/git/sfm-ooi-extract/data", "S:/git/sfm-ooi-extract/output", double_dbscan=False, project=True, floor_distance_threshold=0.1, poisson_depth=10)
 # process_object("garden", "S:/git/sfm-ooi-extract/data", "S:/git/sfm-ooi-extract/output", double_dbscan=False, project=True)

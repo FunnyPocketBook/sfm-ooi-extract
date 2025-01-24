@@ -114,7 +114,7 @@ def get_densest_cluster(points, out_path, min_peak_points, kde_samples=1000, sig
     print(f"Calculating density for {len(points)} points...")
     density = monte_carlo_kde(points, bandwidth=1, sample_size=kde_samples)  
     peak_boundaries, bin_centers = get_peaks(density, min_peak_points, sigma, out_path)
-    first_peak_end_index = peak_boundaries[1][1]
+    first_peak_end_index = peak_boundaries[0][0]
     first_peak_end = bin_centers[first_peak_end_index]
     print(f"First peak ends at density {first_peak_end}")
     points = points[density > first_peak_end]
