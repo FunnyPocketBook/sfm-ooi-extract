@@ -1,0 +1,50 @@
+{
+    "kitchen_dense.ply": {
+        "MSE": 0.0007620955785224229,
+        "RMSE": 0.027606078651674214,
+        "MAE": 0.00781253820114279,
+        "Chamfer Distance": 0.18547293362735198,
+        "Hausdorff Distance": 1.1214085141641663,
+        "Bounding Box Diagonal": 2.7679881761429908,
+        "Hausdorff / BB Ratio": 0.4051348643138986,
+        "SNR": 37.68875327867185,
+        "Exact Matches": 34112,
+        "Missing Points": 3526,
+        "Extra Points": 57500,
+        "Completeness/Recall": 0.906318082788671,
+        "Accuracy/Precision": 0.37235296686023667,
+        "F1 Score": 0.5278452611218568
+    },
+    "kitchen_final.ply": {
+        "MSE": 0.0007873214024222118,
+        "RMSE": 0.028059248073001027,
+        "MAE": 0.008496013962774687,
+        "Chamfer Distance": 0.005431969213008936,
+        "Hausdorff Distance": 1.0654232732602216,
+        "Bounding Box Diagonal": 2.7679881761429908,
+        "Hausdorff / BB Ratio": 0.38490889608669454,
+        "SNR": 37.54732712443146,
+        "Exact Matches": 33203,
+        "Missing Points": 4435,
+        "Extra Points": 1565,
+        "Completeness/Recall": 0.8821669589244912,
+        "Accuracy/Precision": 0.9549873446847676,
+        "F1 Score": 0.9171339391763114
+    },
+    "kitchen_floorseg.ply": {
+        "MSE": 0.0007873214024222118,
+        "RMSE": 0.028059248073001027,
+        "MAE": 0.008496013962774687,
+        "Chamfer Distance": 0.005986550179899493,
+        "Hausdorff Distance": 1.0854212399246639,
+        "Bounding Box Diagonal": 2.7679881761429908,
+        "Hausdorff / BB Ratio": 0.39213362588749456,
+        "SNR": 37.54732712443146,
+        "Exact Matches": 33203,
+        "Missing Points": 4435,
+        "Extra Points": 1590,
+        "Completeness/Recall": 0.8821669589244912,
+        "Accuracy/Precision": 0.9543011525306815,
+        "F1 Score": 0.9168173848214162
+    }
+}
