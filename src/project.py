@@ -4,10 +4,45 @@ import numpy as np
 import open3d as o3d
 import cv2
 import time
-import multiprocessing
 
 from utils import get_extrinsic_matrix
+from scipy.spatial import Delaunay
 
+def delaunay_surface_reconstruction(points):
+    """
+    Perform surface reconstruction using Delaunay triangulation.
+    
+    Parameters:
+    -----------
+    points : np.ndarray
+        Input point cloud as a NumPy array of shape (N, 3).
+
+    Returns:
+    --------
+    mesh : o3d.geometry.TriangleMesh
+        The reconstructed mesh using Delaunay triangulation.
+    """
+    print("Running Delaunay surface reconstruction...")
+
+    # Ensure points are in 3D space
+    if points.shape[1] != 3:
+        raise ValueError("Input points must be a 3D array of shape (N, 3).")
+
+    # Perform Delaunay triangulation in 2D (projected to XY plane)
+    points_2d = points[:, :2]  # Use XY coordinates for 2D triangulation
+    delaunay = Delaunay(points_2d)
+
+    # Create the Open3D mesh from Delaunay simplices (triangles)
+    mesh = o3d.geometry.TriangleMesh()
+    mesh.vertices = o3d.utility.Vector3dVector(points)
+    mesh.triangles = o3d.utility.Vector3iVector(delaunay.simplices)
+
+    # Optionally remove low-density vertices
+    # densities = mesh.compute_vertex_normals()  # Compute normals to estimate densities
+    # vertices_to_remove = densities < np.quantile(densities, 0.05)
+    # mesh.remove_vertices_by_mask(vertices_to_remove)
+
+    return mesh
 
 def project_mesh(mesh, camera_intrinsics, extrinsics):
     """Project 3D mesh vertices onto a 2D image plane."""
@@ -88,7 +123,7 @@ def render_mesh_image(mesh, camera, extrinsics, image_path, output_path, mask_pa
     return composite_image
 
 
-def project_points_to_image(mesh, hull, camera_id, cam_extrinsics, cam_intrinsics, object_name, points, input_path, output_base_path):
+def project_points_to_image(mesh, camera_id, cam_extrinsics, cam_intrinsics, object_name, input_path, output_base_path, mesh_type):
     camera = cam_intrinsics[camera_id] if camera_id in cam_intrinsics else cam_intrinsics[list(cam_intrinsics.keys())[0]]
     qvec = cam_extrinsics[camera_id].qvec
     tvec = cam_extrinsics[camera_id].tvec
@@ -98,11 +133,10 @@ def project_points_to_image(mesh, hull, camera_id, cam_extrinsics, cam_intrinsic
     image_path = f"{input_path}/{object_name}/images/{name}"  # Path to the image in images_8
     output_name = Path(image_path).stem
 
-    mask_type = "mesh"
-    output_dir = f"{output_base_path}/{mask_type}/mask"
+    output_dir = f"{output_base_path}/{mesh_type}/mask"
     os.makedirs(output_dir, exist_ok=True)
-    output_path = f"{output_base_path}/{mask_type}/{output_name}.png"
-    mask_path = f"{output_base_path}/{mask_type}/mask/{output_name}.png"
+    output_path = f"{output_base_path}/{mesh_type}/{output_name}.png"
+    mask_path = f"{output_base_path}/{mesh_type}/mask/{output_name}.png"
     render_mesh_image(mesh, camera, extrinsics, image_path, output_path, mask_path)
 
 
@@ -112,7 +146,7 @@ def poisson_surface_reconstruction(points, depth=None):
         return optimize_poisson_depth(points)
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(points)
-    pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=1.0, max_nn=30))
+    pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=2.0, max_nn=100))
     pcd.orient_normals_consistent_tangent_plane(k=30)
     
     mesh, densities = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(pcd, depth=depth)

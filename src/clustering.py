@@ -4,6 +4,7 @@ from sklearn.neighbors import KernelDensity
 from scipy.ndimage import gaussian_filter1d
 from scipy.signal import find_peaks
 from joblib import Parallel, delayed
+import open3d as o3d
 import time
 import plotly.graph_objs as go
 
@@ -101,16 +102,11 @@ def get_peaks(density, min_peak_points, sigma, out_path):
         title="Density Histogram with Peak Detection",
         xaxis_title="Density",
         yaxis_title="Number of Points",
-        plot_bgcolor='rgba(240, 240, 240, 1)',  # Light gray background
-        paper_bgcolor='rgba(240, 240, 240, 1)',  # Match plot background
         legend=dict(
             x=1.02,  # Slightly outside the graph on the right
             y=1.0,  # Aligns with the top of the graph
             xanchor='left',  # Anchors the legend's left side at x=1.02
             yanchor='top',  # Anchors the legend's top side at y=1.0
-            bgcolor='rgba(255, 255, 255, 0.5)',  # Semi-transparent legend background
-            bordercolor='black',  # Border color
-            borderwidth=1  # Border width
         ),
         xaxis=dict(
             showgrid=True,
@@ -136,7 +132,7 @@ def get_densest_cluster(points, out_path, min_peak_points, kde_samples=1000, sig
     print(f"Calculating density for {len(points)} points...")
     density = monte_carlo_kde(points, bandwidth=1, sample_size=kde_samples)  
     peak_boundaries, bin_centers = get_peaks(density, min_peak_points, sigma, out_path)
-    first_peak_end_index = peak_boundaries[1][1]
+    first_peak_end_index = peak_boundaries[0][0]
     first_peak_end = bin_centers[first_peak_end_index]
     print(f"First peak ends at density {first_peak_end}")
     points = points[density > first_peak_end]
@@ -163,3 +159,11 @@ def remove_outliers(points, eps=None, min_samples=50):
     largest_cluster_label = np.argmax(cluster_sizes)
     largest_cluster_points = points[dbscan_labels == largest_cluster_label]
     return largest_cluster_points
+
+def denoise_point_cloud(points, neighbors=100, std_ratio=0.1):
+    """Denoise the point cloud using statistical outlier removal."""
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(points)
+    
+    cl, ind = pcd.remove_statistical_outlier(nb_neighbors=neighbors, std_ratio=std_ratio)
+    return np.asarray(pcd.points)[ind]

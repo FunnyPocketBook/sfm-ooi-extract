@@ -1,7 +1,7 @@
 from plyfile import PlyData
 import numpy as np
 import open3d as o3d
-
+import copy
 from colmap_loader import qvec2rotmat
 
 
@@ -51,15 +51,28 @@ def get_extrinsic_matrix(qvec, tvec):
     
     return extrinsic_matrix
 
-def flip_ply_on_z_axis(point_cloud, output_file):
-    points = np.asarray(point_cloud.points)
-    points[:, 1] = -points[:, 1]
-    point_cloud.points = o3d.utility.Vector3dVector(points)
+def rotate_ply(ply, output_file):
     output_file = output_file.replace(".ply", "_flipped.ply")
-    o3d.io.write_point_cloud(output_file, point_cloud)
+    new_ply = copy.deepcopy(ply)
+    rotation_matrix = np.array([
+        [1,  0,  0],
+        [0, -1,  0],
+        [0,  0, -1]
+    ])
+    if isinstance(ply, o3d.geometry.TriangleMesh):
+        vertices = np.asarray(ply.vertices)
+    else:
+        vertices = np.asarray(ply.points)
+    rotated_vertices = np.dot(vertices, rotation_matrix.T)
+    if isinstance(ply, o3d.geometry.TriangleMesh):
+        new_ply.vertices = o3d.utility.Vector3dVector(rotated_vertices)
+        o3d.io.write_triangle_mesh(output_file, new_ply)
+    else:
+        new_ply.points = o3d.utility.Vector3dVector(rotated_vertices)
+        o3d.io.write_point_cloud(output_file, new_ply)
 
 
-def write_ply(original_points, points, colors, normals, out_path):
+def write_pc(original_points, points, colors, normals, out_path, special_points=None):
     dtype = [('x', float), ('y', float), ('z', float)]
     original_structured = np.array([tuple(p) for p in original_points], dtype=dtype)
     outliers_structured = np.array([tuple(p) for p in points], dtype=dtype)
@@ -69,10 +82,20 @@ def write_ply(original_points, points, colors, normals, out_path):
     pcd.points = o3d.utility.Vector3dVector(points)
     if colors is not None:
         end_colors = colors[indices]
-        pcd.colors = o3d.utility.Vector3dVector(end_colors / 255.0)
+        final_colors = end_colors.copy()
+        if special_points is not None:
+            special_indices = np.nonzero(np.isin(points, special_points))[0]
+            final_colors[special_indices] = [255, 0, 0]
+        pcd.colors = o3d.utility.Vector3dVector(final_colors / 255.0)
     if normals is not None:
         end_normals = normals[indices]
         pcd.normals = o3d.utility.Vector3dVector(end_normals)
     o3d.io.write_point_cloud(out_path, pcd)
-    flip_ply_on_z_axis(pcd, out_path)
+    rotate_ply(pcd, out_path)
     return pcd
+
+
+def write_mesh(mesh, out_path):
+    o3d.io.write_triangle_mesh(out_path, mesh)
+    rotate_ply(mesh, out_path)
+    return mesh

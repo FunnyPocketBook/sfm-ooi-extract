@@ -3,8 +3,89 @@ import open3d as o3d
 import os
 import json
 from scipy.spatial import cKDTree
+import cv2
+from glob import glob
 
-def compute_metrics(gt_pcd, gen_pcd):
+def compute_mask_metrics(gt_path, gen_path):
+    # Get list of files in gt_path
+    gt_files = glob(os.path.join(gt_path, "*.png"))
+
+    # Initialize metrics
+    total_iou, total_dice, total_precision, total_recall, total_f1 = 0, 0, 0, 0, 0
+    num_files = len(gt_files)
+
+    for gt_file in gt_files:
+        # Load ground truth mask
+        gt_mask = cv2.imread(gt_file, cv2.IMREAD_COLOR)
+        gt_mask = (gt_mask[:, :, 2] > 0).astype(np.uint8)  # Red channel as binary mask
+
+        # Find the corresponding generated mask
+        gen_file = os.path.join(gen_path, os.path.basename(gt_file))
+        if not os.path.exists(gen_file):
+            print(f"Warning: Generated mask not found for {gt_file}")
+            num_files -= 1
+            continue
+
+        # Load generated mask
+        gen_mask = cv2.imread(gen_file, cv2.IMREAD_GRAYSCALE)
+        gen_mask = (gen_mask > 0).astype(np.uint8)  # Convert to binary mask
+
+        # Calculate metrics
+        intersection = np.logical_and(gt_mask, gen_mask).sum()
+        union = np.logical_or(gt_mask, gen_mask).sum()
+        gt_sum = gt_mask.sum()
+        gen_sum = gen_mask.sum()
+
+        # Avoid division by zero
+        iou = intersection / union if union > 0 else 0
+        dice = 2 * intersection / (gt_sum + gen_sum) if (gt_sum + gen_sum) > 0 else 0
+        precision = intersection / gen_sum if gen_sum > 0 else 0
+        recall = intersection / gt_sum if gt_sum > 0 else 0
+        f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
+
+        # Accumulate metrics
+        total_iou += iou
+        total_dice += dice
+        total_precision += precision
+        total_recall += recall
+        total_f1 += f1
+
+    # Calculate averages
+    if num_files > 0:
+        avg_iou = total_iou / num_files
+        avg_dice = total_dice / num_files
+        avg_precision = total_precision / num_files
+        avg_recall = total_recall / num_files
+        avg_f1 = total_f1 / num_files
+    else:
+        avg_iou = avg_dice = avg_precision = avg_recall = avg_f1 = 0
+
+    return {
+        "IoU": avg_iou,
+        "Dice Coefficient": avg_dice,
+        "Precision": avg_precision,
+        "Recall": avg_recall,
+        "F1 Score": avg_f1,
+    }
+
+
+def mask_metrics(gt_path, gen_path, output_file):
+    metrics = compute_mask_metrics(gt_path, gen_path)
+
+
+    # Print metrics
+    print("Average Metrics:")
+    for metric, value in metrics.items():
+        print(f"{metric}: {value:.4f}")
+
+
+    with open(output_file, "w") as f:
+        json.dump(metrics, f, indent=4)
+
+    print(f"Metrics have been written to {output_file}")
+
+
+def compute_ply_metrics(gt_pcd, gen_pcd):
     """
     Computes various metrics to evaluate the accuracy of a generated point cloud against the ground truth.
     Handles cases where the point counts differ.
@@ -110,7 +191,7 @@ def ply_metrics(gt_path, gen_dir, name, output_file):
         None
     """
     # Define the file patterns to process
-    file_patterns = [f"{name}_dense.ply", f"{name}_final.ply", f"{name}_floorseg.ply"]
+    file_patterns = [f"{name}_dense.ply", f"{name}_floorseg.ply", f"{name}_final.ply", f"{name}_stat_outlier.ply"]
     results = {}
     gt_pcd = o3d.io.read_point_cloud(gt_path)
 
@@ -130,7 +211,7 @@ def ply_metrics(gt_path, gen_dir, name, output_file):
         # Convert to numpy arrays
         
         # Compute metrics
-        metrics = compute_metrics(gt_pcd, gen_pcd)
+        metrics = compute_ply_metrics(gt_pcd, gen_pcd)
         results[file_pattern] = metrics
         print(f"Metrics for {file_pattern}:")
         for metric, value in metrics.items():

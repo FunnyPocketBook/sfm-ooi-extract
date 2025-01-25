@@ -154,8 +154,8 @@ def find_floor_plane_auto(points, out_path, min_floor_points=100):
         x=stats['thresholds'],
         y=second_derivative,
         name='2nd Derivative of Floor Ratio',
-        mode='lines+markers',
-        line=dict(color='#d62728', dash='dash'),  # Red
+        mode='lines',
+        line=dict(color='#800080', dash='dash'),  # purple
         yaxis='y2'
     ))
 
@@ -169,15 +169,18 @@ def find_floor_plane_auto(points, out_path, min_floor_points=100):
             gridcolor='lightgray',  # Gridline color
             gridwidth=0.5,  # Gridline width
         ),
+        legend=dict(
+            x=1.02,  # Slightly outside the graph on the right
+            y=1.0,  # Aligns with the top of the graph
+            xanchor='left',  # Anchors the legend's left side at x=1.02
+            yanchor='top',  # Anchors the legend's top side at y=1.0
+        ),
         yaxis2=dict(
             title='2nd Derivative',
             overlaying='y',
             side='right',
             showgrid=False,  # No gridlines
         ),
-        template=None,  # Retain your background settings
-        plot_bgcolor='rgba(240, 240, 240, 1)',  # Your desired background color
-        paper_bgcolor='rgba(240, 240, 240, 1)',  # Match the plot background
         xaxis=dict(
             showgrid=True,  # Align the grid with the Y-axis
             gridcolor='lightgray',
@@ -317,6 +320,7 @@ def run_floor_separation(points, out_path, min_floor_points=500, distance_thresh
     }
 
     final_points = orientation_info["points_below_floor"] if orientation_info["is_upside_down"] else orientation_info["points_above_floor"]
+    result['discarded_points'] = orientation_info["points_above_floor"] if orientation_info["is_upside_down"] else orientation_info["points_below_floor"]
 
     
     # 4. Remove points below floor
